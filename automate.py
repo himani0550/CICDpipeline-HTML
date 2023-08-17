@@ -1,43 +1,27 @@
-import time
-from github import Github
+import requests, os
 
-"""
-This code uses the PyGithub module to monitor a GitHub repository for new commits.
-It prints the SHA of the latest commit every 60 seconds if it has changed.
-"""
+def check_for_new_commits():
+    headers = {'Authorization': f'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'}
+    url = f'https://github.com/himani0550/CICDpipeline-HTML/commits?sha=prod'
+    response = requests.get(url, headers=headers)
+    commit_ids = []
+    latest_commit_id = None
 
-# The repository URL
-REPO_URL = "himani0550/CICDpipeline-HTML"
+    if response.status_code == 200:
+        commits = response.json()
+        print(f'New commits found: {len(commits)}')
+        for commit in commits:
+            commit_ids.append({commit["sha"]})
+        print(commit_ids)
+    else:
+        print(f'Error: {response.status_code}')
+    
+    if commit_ids[0] != latest_commit_id:
+        latest_commit_id = commit_ids[0]
+        # print(latest_commit_id)
+        os.system('git pull origin prod')
+        os.system('sudo cp -rf *.html /var/www/html/')
+        os.system("sudo service nginx restart")
 
-# Create a Github instance using an access token
-g = Github("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")
 
-# Get the repository object
-repo = g.get_repo(REPO_URL)
-# Initialize the last commit SHA to None
-last_commit_sha = None
-
-# Loop indefinitely
-while True:
-    # Try to get the commits from the repository
-    try:
-        commits = repo.get_commits()
-        # Get the latest commit
-        latest_commit = commits[0]
-        # Check if the SHA has changed
-        if last_commit_sha != latest_commit.sha:
-            # Print the new commit SHA
-            print(f"New commit: {latest_commit.sha}")
-            # Update the last commit SHA
-            last_commit_sha = latest_commit.sha
-    except Exception as e:
-        # Print the error message
-        print(f"Error: {e}")
-
-    # Try to sleep for 60 seconds
-    try:
-        time.sleep(60)
-    except Exception as e:
-        # Print the error message and exit the loop
-        print(f"Error: {e}")
-        break
+    check_for_new_commits()
