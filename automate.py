@@ -2,7 +2,7 @@ import requests, os
 
 def check_for_new_commits():
     headers = {'Authorization': f'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'}
-    url = f'https://api.github.com/himani0550/CICDpipeline-HTML/commits?sha=prod'
+    url = f'https://api.github.com/repos/himani0550/CICDpipeline-HTML/commits?sha=prod'
     response = requests.get(url, headers=headers)
     commit_ids = []
     latest_commit_id = None
